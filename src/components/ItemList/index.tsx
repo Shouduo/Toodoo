@@ -12,17 +12,35 @@ import FlipMove from 'react-flip-move';
 import { shuffle } from '@/utils/public';
 import ProgressItem from '@/components/ProgressItem';
 import { Context } from '@/pages/IndexPage';
-import { orderBy, groupBy, filter, map, reduce, isString } from 'lodash';
+import {
+  orderBy,
+  groupBy,
+  filter,
+  map,
+  reduce,
+  isString,
+  includes,
+} from 'lodash';
 import { nanoid } from 'nanoid';
 
 //
-const ItemGroup = ({ group, length }) => {
+const ItemGroup = ({ group, length, onClick }) => {
   return (
     <Stack
       direction="row"
       justifyContent="space-between"
       alignItems="center"
-      sx={{ height: '48px', width: '100%' }}
+      sx={{
+        height: '48px',
+        width: '100%',
+        margin: '4px 0',
+        background: 'white',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        transition: 'all ease .2s',
+        '&:hover': { background: 'rgba(0,0,0,0.05)' },
+      }}
+      onClick={onClick}
     >
       <Typography variant="h6" noWrap component="div">
         {group}
@@ -36,52 +54,42 @@ const ItemGroup = ({ group, length }) => {
 const ItemList = () => {
   const { data, dispatch } = React.useContext(Context);
   const [sortedData, setSortedData] = React.useState([]);
+  const [expandGroup, setExpandGroup] = React.useState(['Ongoing', 'Done']);
+
+  const onExpandToggle = (group) => () => {
+    if (expandGroup.includes(group)) {
+      setExpandGroup(filter(expandGroup, (g) => g !== group));
+    } else {
+      setExpandGroup([...expandGroup, group]);
+    }
+  };
 
   React.useEffect(() => {
-    const groupOrder = ['Ongoing', 'Done'];
     const orderedData = orderBy(data, ['startTime'], ['asc']);
     const ongoingData = filter(orderedData, ['isDone', false]);
     const doneData = filter(orderedData, ['isDone', true]);
     const shownData = [
       { group: 'Ongoing', length: ongoingData.length },
-      ...ongoingData,
+      ...(expandGroup.includes('Ongoing') ? ongoingData : []),
       { group: 'Done', length: doneData.length },
-      ...doneData,
+      ...(expandGroup.includes('Done') ? doneData : []),
     ];
     setSortedData(shownData);
-  }, [data]);
+  }, [data, expandGroup]);
   return (
     <>
-      <Button
-        onClick={() =>
-          dispatch({
-            type: 'add',
-            payload: {
-              id: nanoid(),
-              content: Date().toString(),
-              type: 'normal',
-              startTime: Date.now(),
-              finishTime: null,
-              planDuration: 3600000,
-              isDone: false,
-            },
-          })
-        }
-      >
-        add
-      </Button>
       <FlipMove
         typeName="ul"
         duration={200}
-        staggerDurationBy={50}
-        staggerDelayBy={10}
+        // staggerDurationBy={50}
+        // staggerDelayBy={10}
         enterAnimation="fade"
         leaveAnimation="fade"
       >
         {sortedData.map((item) =>
           item.group ? (
             <ListItem key={item.group} sx={{ padding: '0' }}>
-              <ItemGroup {...item} />
+              <ItemGroup {...item} onClick={onExpandToggle(item.group)} />
             </ListItem>
           ) : (
             <ListItem key={item.id} sx={{ padding: '0' }}>

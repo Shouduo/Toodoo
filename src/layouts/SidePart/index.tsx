@@ -31,11 +31,11 @@ import '@/renderer/App.css';
 
 //
 const MainBox = styled(Box)(({ theme }) => ({
-  margin: '0 48px',
+  margin: '24px 48px 0',
   height: 'auto',
   overflow: 'hidden',
   [theme.breakpoints.up('sm')]: {
-    height: 'calc(100vh - 64px)',
+    height: 'calc(100vh - 64px - 24px)',
     // backgroundColor: 'blue',
   },
 }));
@@ -44,12 +44,12 @@ const MainBox = styled(Box)(({ theme }) => ({
 const LeftBox = styled(Box)(({ theme }) => ({
   display: 'inline-block',
   verticalAlign: 'top',
-  marginTop: '24px',
+  // marginTop: '24px',
   width: '100%',
   transition: 'all ease .2s',
   // opacity: 0.5,
   [theme.breakpoints.up('sm')]: {
-    width: '280px',
+    width: '240px',
     // backgroundColor: 'blue',
   },
 }));
@@ -58,13 +58,13 @@ const LeftBox = styled(Box)(({ theme }) => ({
 const RightBox = styled(Box)(({ theme }) => ({
   display: 'inline-block',
   verticalAlign: 'top',
-  marginTop: '24px',
+  // marginTop: '24px',
   width: '100%',
   transition: 'all ease .2s',
   // opacity: 0.5,
   [theme.breakpoints.up('sm')]: {
-    marginLeft: '24px',
-    width: 'calc(100% - 280px - 24px)',
+    marginLeft: '48px',
+    width: 'calc(100% - 240px - 48px)',
     // backgroundColor: 'red',
   },
 }));
@@ -79,8 +79,8 @@ const SidePart = ({
   return (
     <MainBox>
       <LeftBox
-        // bgcolor="lightblue"
-        height="200px"
+      // bgcolor="lightblue"
+      // height="200px"
       >
         {left}
       </LeftBox>

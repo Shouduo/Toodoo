@@ -18,8 +18,9 @@ import LinearProgress, {
 import Checkbox from '@mui/material/Checkbox';
 import * as colors from '@mui/material/colors';
 import CloseIcon from '@mui/icons-material/Close';
-import { ITEM_TYPES } from '@/utils/constants';
+import { ITEM_LEVELS } from '@/utils/constants';
 import { Context } from '@/pages/IndexPage';
+import { durationParser } from '@/utils/public';
 
 //
 const ProgressBackground = styled(LinearProgress)(
@@ -84,21 +85,38 @@ const ProgressItem = ({
   isDone,
 }: ProgressItemProps) => {
   const { data, dispatch } = React.useContext(Context);
+  const [leftTime, setLeftTime] = React.useState(0);
+  const [percent, setPercent] = React.useState(0);
   const onCheckChange = ({ target }) => {
-    dispatch({ type: 'update', payload: { id, isDone: target.checked } });
-    // setisDone(target.checked);
+    dispatch({
+      type: 'update',
+      payload: {
+        id,
+        isDone: target.checked,
+        finishTime: target.checked ? Date.now() : null,
+      },
+    });
   };
 
   const onDelete = () => {
-    console.log('onDelete');
     dispatch({ type: 'delete', payload: { id } });
+  };
+
+  const calcDuration = () => {
+    const diffTime = (finishTime ?? Date.now()) - startTime;
+    setLeftTime(planDuration - diffTime);
+    setPercent(Math.min((diffTime / planDuration) * 100, 100));
   };
 
   React.useEffect(() => {
     let timer;
+    calcDuration();
     if (!isDone && !timer) {
-      timer = setInterval(() => {}, 1000);
+      timer = setInterval(calcDuration, 1000);
     }
+    return () => {
+      clearInterval(timer);
+    };
   }, [isDone]);
 
   return (
@@ -109,19 +127,19 @@ const ProgressItem = ({
         height: '48px',
         width: '100%',
         overflow: 'hidden',
-        margin: '8px 0',
+        margin: '4px 0',
       }}
     >
       <ProgressBackground
         variant="determinate"
-        value={70}
-        bgcolor={ITEM_TYPES[type].color}
+        value={percent}
+        bgcolor={ITEM_LEVELS[type].color}
         isdim={isDone}
       />
       <Stack direction="row" alignItems="center" height="100%">
         <StyledCheckbox
           inputProps={{ 'aria-label': 'Checkbox demo' }}
-          sx={{ color: `${ITEM_TYPES[type].color[500]} !important` }}
+          sx={{ color: `${ITEM_LEVELS[type].color[500]} !important` }}
           checked={isDone}
           onChange={onCheckChange}
         />
@@ -129,7 +147,7 @@ const ProgressItem = ({
           variant="body1"
           noWrap
           component="div"
-          title="Is this the real life, is this just fantasy?"
+          title={content}
           sx={{
             flexGrow: 1,
             zIndex: 1,
@@ -146,7 +164,7 @@ const ProgressItem = ({
           alignSelf="start"
           height="200%"
           sx={{
-            mr: 1,
+            mr: 2,
             transition: 'all ease .2s',
             '&:hover': {
               transform: 'translateY(-50%)',
@@ -164,7 +182,9 @@ const ProgressItem = ({
                 textShadow: '1px 1px 1px rgba(0, 0, 0, 30%)',
               }}
             >
-              120:00 left
+              {`${durationParser(Math.abs(leftTime))} ${
+                leftTime > 0 ? 'left' : 'late'
+              }`}
             </Typography>
           </Stack>
           <Stack height="50%" justifyContent="center" alignItems="center">
