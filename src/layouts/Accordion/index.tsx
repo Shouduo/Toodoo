@@ -23,7 +23,7 @@ const Accordion = ({
   const detailRef = React.useRef<HTMLDivElement>(null);
 
   const onToggle = () => {
-    setIsExpand(!isExpand);
+    !disabled && setIsExpand(!isExpand);
   };
 
   const OnDetailHeightChange = () => {
@@ -80,9 +80,7 @@ const Accordion = ({
         overflow="hidden"
         sx={{ transition: 'all ease .2s' }}
       >
-        <Box ref={detailRef} sx={{ paddingTop: '8px' }}>
-          {detail}
-        </Box>
+        <Box ref={detailRef}>{detail}</Box>
       </Box>
     </Box>
   );

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { styled, alpha, useTheme } from '@mui/material/styles';
 import {
   Box,
+  Stack,
   AppBar,
   Toolbar,
   IconButton,
@@ -10,7 +11,9 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { Context } from '@/context/index';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -40,12 +43,25 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   justifyContent: 'center',
 }));
 
+const CloseIconWrapper = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: '100%',
+  position: 'absolute',
+  top: '0',
+  right: '0',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}));
+
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
   '& .MuiInputBase-input': {
     padding: theme.spacing(1, 1, 1, 0),
     // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    paddingRight: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
     width: '100%',
     [theme.breakpoints.up('sm')]: {
@@ -57,13 +73,57 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-const SearchAppBar = () => {
+const OrderSwitcher = ({ onClick }: { onClick?: () => void }) => {
+  const { order, setOrder } = React.useContext(Context);
+
+  const onOrderChange = (e: React.MouseEvent<HTMLElement>) => {
+    setOrder(e.currentTarget.id);
+    onClick?.();
+  };
+
+  return (
+    <>
+      {['All', 'Time left', 'Emergency'].map((item) => (
+        <Box
+          id={item}
+          key={item}
+          fontSize="body1"
+          margin="16px"
+          onClick={onOrderChange}
+          sx={{
+            cursor: 'pointer',
+            opacity: order === item ? '1 !important' : '0.5',
+            '&:hover': { opacity: '0.8' },
+          }}
+        >
+          {item}
+        </Box>
+      ))}
+    </>
+  );
+};
+
+OrderSwitcher.defaultProps = {
+  onClick: null,
+};
+
+//
+const NavBar = () => {
   const theme = useTheme();
   const isLargeView = useMediaQuery(theme.breakpoints.up('sm'));
+  const { keyword, setKeyword } = React.useContext(Context);
+
+  const [isExpand, setIsExpand] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    if (isLargeView && isExpand) {
+      setIsExpand(false);
+    }
+  }, [isLargeView, isExpand]);
 
   return (
     <AppBar position="sticky">
-      <Toolbar sx={{ height: '64px' }}>
+      <Toolbar sx={{ height: '64px', justifyContent: 'space-between' }}>
         {!isLargeView && (
           <IconButton
             size="large"
@@ -71,18 +131,22 @@ const SearchAppBar = () => {
             color="inherit"
             aria-label="open drawer"
             sx={{ mr: 2 }}
+            onClick={() => setIsExpand(!isExpand)}
           >
             <MenuIcon />
           </IconButton>
         )}
-        <Typography
-          variant="h6"
-          noWrap
-          component="div"
-          sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
-        >
-          Toodoo
-        </Typography>
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
+          >
+            Toodoo
+          </Typography>
+          {isLargeView && <OrderSwitcher />}
+        </Stack>
         <Search>
           <SearchIconWrapper>
             <SearchIcon />
@@ -90,11 +154,29 @@ const SearchAppBar = () => {
           <StyledInputBase
             placeholder="Search…"
             inputProps={{ 'aria-label': 'search' }}
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
           />
+          {keyword.trim() !== '' && (
+            <CloseIconWrapper onClick={() => setKeyword('')}>
+              <CloseIcon />
+            </CloseIconWrapper>
+          )}
         </Search>
       </Toolbar>
+      <Box
+        overflow="hidden"
+        height={isExpand ? '130px' : '0px'}
+        sx={{ transition: 'all ease .2s' }}
+      >
+        <OrderSwitcher
+          onClick={() => {
+            setIsExpand(false);
+          }}
+        />
+      </Box>
     </AppBar>
   );
 };
 
-export default SearchAppBar;
+export default NavBar;

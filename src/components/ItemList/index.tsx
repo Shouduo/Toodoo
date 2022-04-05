@@ -1,30 +1,21 @@
 import * as React from 'react';
-import { Box, Stack, Typography, Chip } from '@mui/material';
-import Button from '@mui/material/Button';
-import Collapse from '@mui/material/Collapse';
-import IconButton from '@mui/material/IconButton';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import DeleteIcon from '@mui/icons-material/Delete';
-// import { TransitionGroup } from 'react-transition-group';
+import { Stack, Typography, Chip, ListItem } from '@mui/material';
 import FlipMove from 'react-flip-move';
-import { shuffle } from '@/utils/public';
 import ProgressItem from '@/components/ProgressItem';
-import { Context } from '@/pages/IndexPage';
-import {
-  orderBy,
-  groupBy,
-  filter,
-  map,
-  reduce,
-  isString,
-  includes,
-} from 'lodash';
-import { nanoid } from 'nanoid';
+import { Context } from '@/context/index';
+import { orderBy, filter } from 'lodash';
+import { ItemType, ITEM_LEVELS, ITEM_TEMPLATE } from '@/utils/constants';
 
 //
-const ItemGroup = ({ group, length, onClick }) => {
+const ItemGroup = ({
+  id,
+  content,
+  onClick,
+}: {
+  id: string;
+  content: string;
+  onClick: () => void;
+}) => {
   return (
     <Stack
       direction="row"
@@ -43,39 +34,54 @@ const ItemGroup = ({ group, length, onClick }) => {
       onClick={onClick}
     >
       <Typography variant="h6" noWrap component="div">
-        {group}
+        {id}
       </Typography>
-      <Chip label={length} />
+      <Chip label={content} />
     </Stack>
   );
 };
 
 //
 const ItemList = () => {
-  const { data, dispatch } = React.useContext(Context);
-  const [sortedData, setSortedData] = React.useState([]);
+  const { data, order, keyword } = React.useContext(Context);
+  const [sortedData, setSortedData] = React.useState<ItemType[]>([]);
   const [expandGroup, setExpandGroup] = React.useState(['Ongoing', 'Done']);
 
-  const onExpandToggle = (group) => () => {
-    if (expandGroup.includes(group)) {
-      setExpandGroup(filter(expandGroup, (g) => g !== group));
+  const onExpandToggle = (id: string) => () => {
+    if (expandGroup.includes(id)) {
+      setExpandGroup(filter(expandGroup, (g) => g !== id));
     } else {
-      setExpandGroup([...expandGroup, group]);
+      setExpandGroup([...expandGroup, id]);
     }
   };
 
   React.useEffect(() => {
-    const orderedData = orderBy(data, ['startTime'], ['asc']);
+    let orderedData;
+    if (order === 'Time left') {
+      orderedData = orderBy(data, ['endTime'], ['asc']);
+    } else if (order === 'Emergency') {
+      orderedData = orderBy(data, (item) => ITEM_LEVELS[item.level].level, [
+        'desc',
+      ]);
+    } else {
+      orderedData = orderBy(data, ['startTime'], ['asc']);
+    }
+    if (keyword.trim() !== '') {
+      orderedData = filter(orderedData, (item) =>
+        new RegExp(`${keyword.trim()}`, 'ig').test(item.content)
+      );
+    }
     const ongoingData = filter(orderedData, ['isDone', false]);
     const doneData = filter(orderedData, ['isDone', true]);
     const shownData = [
-      { group: 'Ongoing', length: ongoingData.length },
+      { ...ITEM_TEMPLATE, id: 'Ongoing', content: `${ongoingData.length}` },
       ...(expandGroup.includes('Ongoing') ? ongoingData : []),
-      { group: 'Done', length: doneData.length },
+      { ...ITEM_TEMPLATE, id: 'Done', content: `${doneData.length}` },
       ...(expandGroup.includes('Done') ? doneData : []),
     ];
     setSortedData(shownData);
-  }, [data, expandGroup]);
+  }, [data, expandGroup, order, keyword]);
+
   return (
     <>
       <FlipMove
@@ -87,13 +93,17 @@ const ItemList = () => {
         leaveAnimation="fade"
       >
         {sortedData.map((item) =>
-          item.group ? (
-            <ListItem key={item.group} sx={{ padding: '0' }}>
-              <ItemGroup {...item} onClick={onExpandToggle(item.group)} />
+          ['Ongoing', 'Done'].includes(item.id) ? (
+            <ListItem key={item.id} sx={{ padding: '0' }}>
+              <ItemGroup
+                id={item.id}
+                content={item.content}
+                onClick={onExpandToggle(item.id)}
+              />
             </ListItem>
           ) : (
             <ListItem key={item.id} sx={{ padding: '0' }}>
-              <ProgressItem {...item} />
+              <ProgressItem data={item} />
             </ListItem>
           )
         )}

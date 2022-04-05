@@ -8,6 +8,9 @@ module.exports = {
     'react/react-in-jsx-scope': 'off',
     'react/jsx-props-no-spreading': 'off',
     '@typescript-eslint/no-unused-expressions': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    'import/prefer-default-export': 'off',
+    'import/no-cycle': 'off',
   },
   parserOptions: {
     ecmaVersion: 2020,

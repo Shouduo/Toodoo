@@ -1,67 +1,77 @@
 import * as React from 'react';
-import { Button, TextField, InputAdornment, IconButton } from '@mui/material';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import LocalizationProvider from '@mui/lab/LocalizationProvider';
-import DateTimePicker from '@mui/lab/DateTimePicker';
-import MobileDateTimePicker from '@mui/lab/MobileDateTimePicker';
-import DesktopDateTimePicker from '@mui/lab/DesktopDateTimePicker';
-import Stack from '@mui/material/Stack';
-import enLocale from 'date-fns/locale/en-US';
-import AddIcon from '@mui/icons-material/Add';
-import { Context } from '@/pages/IndexPage';
-import { ITEM_TEMPLATE, ITEM_LEVELS } from '@/utils/constants';
+import {
+  Stack,
+  Button,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Tooltip,
+} from '@mui/material';
+import { Context } from '@/context/index';
+import {
+  ITEM_TEMPLATE,
+  ITEM_LEVELS,
+  DEFAULT_DURATION,
+  ItemType,
+} from '@/utils/constants';
 import { nanoid } from 'nanoid';
-import CircleIcon from '@mui/icons-material/Circle';
-// import { useTheme } from '@mui/material/styles';
-import * as colors from '@mui/material/colors';
 import { map } from 'lodash';
-import TodayIcon from '@mui/icons-material/Today';
+import AddIcon from '@mui/icons-material/Add';
+import CircleIcon from '@mui/icons-material/Circle';
+import SaveIcon from '@mui/icons-material/Save';
+import DatePicker from '@/components/DatePicker';
 
-const ItemCreator = () => {
-  const { data, dispatch } = React.useContext(Context);
-  // const theme = useTheme();
+interface Props {
+  data?: ItemType;
+  isCreate?: boolean;
+  onCancel?: () => void;
+}
 
-  const [content, setContent] = React.useState<string>('');
-  const [level, setLevel] = React.useState<string>(ITEM_LEVELS.normal.key);
-  const [startTime, setStartTime] = React.useState<number>(Date.now());
-  const [stopTime, setStopTime] = React.useState<number>(
-    Date.now() + ITEM_TEMPLATE.planDuration
+const ItemCreator = ({ data, isCreate, onCancel }: Props) => {
+  const { dispatch } = React.useContext(Context);
+
+  const [content, setContent] = React.useState<string>(data?.content ?? '');
+  const [level, setLevel] = React.useState<string>(
+    data?.level ?? ITEM_LEVELS.normal.key
+  );
+  const [startTime, setStartTime] = React.useState<number>(
+    data?.startTime ?? Date.now()
+  );
+  const [endTime, setEndTime] = React.useState<number>(
+    data?.endTime ?? Date.now() + DEFAULT_DURATION
   );
   const [isValid, setIsValid] = React.useState<boolean>(false);
   const [showErrorMsg, setShowErrorMsg] = React.useState<boolean>(false);
 
   const timer = React.useRef<number>();
-  // const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   setContent(event.target.value);
-  // };
-
+  //
   const onLevelIconClick = () => {
     const levelOrder = map(ITEM_LEVELS, (item) => item.key);
     const nextLevel = levelOrder[(levelOrder.indexOf(level) + 1) % 3];
     setLevel(nextLevel);
   };
-
+  //
   const onReset = () => {
     setContent('');
     setLevel(ITEM_LEVELS.normal.key);
     setStartTime(Date.now());
-    setStopTime(Date.now() + ITEM_TEMPLATE.planDuration);
+    setEndTime(Date.now() + DEFAULT_DURATION);
   };
-
-  const onAdd = () => {
+  //
+  const onConfirm = () => {
     if (isValid) {
       dispatch({
-        type: 'add',
+        type: isCreate ? 'add' : 'update',
         payload: {
           ...ITEM_TEMPLATE,
-          id: nanoid(),
+          id: isCreate ? nanoid() : data?.id ?? '',
           content,
-          type: level,
+          level,
           startTime,
-          planDuration: stopTime - startTime,
+          endTime,
         },
       });
-      setContent('');
+      isCreate ? setContent('') : onCancel?.();
     } else {
       !showErrorMsg && setShowErrorMsg(true);
       clearTimeout(timer.current);
@@ -72,145 +82,102 @@ const ItemCreator = () => {
   };
 
   React.useEffect(() => {
-    setIsValid(content.trim() !== '' && startTime < stopTime);
-  }, [content, startTime, stopTime]);
+    setIsValid(content.trim() !== '' && startTime < endTime);
+  }, [content, startTime, endTime]);
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} locale={enLocale}>
-      <Stack spacing={3}>
-        <TextField
-          id="outlined-multiline-flexible"
-          size="small"
-          label="Content"
-          placeholder="What's need to be done..."
-          required
-          multiline
-          minRows={2}
-          maxRows={4}
-          value={content}
-          // onChange={handleChange}
-          onChange={({ target }) => setContent(target.value)}
-          {...(showErrorMsg && content.trim() === ''
-            ? { error: true, helperText: 'Content is required' }
-            : {})}
-          sx={{
-            '& .MuiFormHelperText-root': {
-              position: 'absolute',
-              bottom: '-18px',
-              margin: '0',
-            },
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment
-                position="start"
-                sx={{
-                  alignSelf: 'start',
-                  height: 'auto',
-                  margin: '-4px 2px 0px -8px',
-                }}
-              >
+    <Stack spacing={3} sx={{ paddingTop: '8px' }}>
+      <TextField
+        id="outlined-multiline-flexible"
+        size="small"
+        label="Content"
+        placeholder="What's need to be done..."
+        required
+        multiline
+        minRows={2}
+        maxRows={4}
+        value={content}
+        // onChange={handleChange}
+        onChange={({ target }) => setContent(target.value)}
+        {...(showErrorMsg && content.trim() === ''
+          ? { error: true, helperText: 'Content is required' }
+          : {})}
+        sx={{
+          '& .MuiFormHelperText-root': {
+            position: 'absolute',
+            bottom: '-18px',
+            margin: '0',
+          },
+        }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment
+              position="start"
+              sx={{
+                alignSelf: 'start',
+                height: 'auto',
+                margin: '-4px 2px 0px -6px',
+              }}
+            >
+              <Tooltip title={ITEM_LEVELS[level].label} arrow>
                 <IconButton size="small" onClick={onLevelIconClick}>
                   <CircleIcon
                     fontSize="small"
                     sx={{ color: ITEM_LEVELS[level].color[500] }}
                   />
                 </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-        {/* <MobileDateTimePicker
-          value={value}
-          onChange={(newValue) => {
-            setStartTime(newValue);
-          }}
-          renderInput={(params) => <TextField {...params} />}
-        />
-        <DesktopDateTimePicker
-          value={value}
-          onChange={(newValue) => {
-            setStartTime(newValue);
-          }}
-          renderInput={(params) => <TextField {...params} />}
-        /> */}
-        <MobileDateTimePicker
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <TodayIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          )}
-          inputFormat="yyyy-MM-dd h:mm a"
-          mask="____-__-__- __:__ _M"
-          label="Start Time"
-          value={startTime}
-          showTodayButton
-          onChange={(newValue) => {
-            setStartTime(new Date(newValue).getTime());
-          }}
-        />
-        <MobileDateTimePicker
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <TodayIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          )}
-          inputFormat="yyyy-MM-dd h:mm a"
-          mask="____-__-__- __:__ _M"
-          label="Stop Time"
-          value={stopTime}
-          minDateTime={startTime}
-          showTodayButton
-          onChange={(newValue) => {
-            setStopTime(new Date(newValue).getTime());
-          }}
-        />
-        <Stack direction="row" justifyContent="end" spacing={2}>
-          <Button variant="outlined" onClick={onReset}>
-            Reset
-          </Button>
-          <Button
-            classes={!isValid ? { root: 'Mui-disabled' } : {}}
-            // classes={{ root: 'Mui-disabled' }}
-            variant="contained"
-            endIcon={<AddIcon />}
-            onClick={onAdd}
-            sx={
-              !isValid
-                ? {
-                    pointerEvents: 'auto !important',
-                    cursor: 'not-allowed !important',
-                  }
-                : {}
-            }
-            // sx={{
-            //   color: 'rgba(0, 0, 0, 0.26)',
-            //   boxShadow: 'none',
-            //   backgroundColor: 'rgba(0, 0, 0, 0.12)',
-            // }}
-          >
-            Add
-          </Button>
-        </Stack>
+              </Tooltip>
+            </InputAdornment>
+          ),
+        }}
+      />
+      <DatePicker
+        label="Start Time"
+        value={startTime}
+        onChange={(newValue) => setStartTime(Date.parse(newValue!))}
+      />
+      <DatePicker
+        label="Start Time"
+        minDateTime={startTime}
+        value={endTime}
+        onChange={(newValue) => setEndTime(Date.parse(newValue!))}
+      />
+      <Stack direction="row" justifyContent="end" spacing={2}>
+        <Button variant="outlined" onClick={isCreate ? onReset : onCancel}>
+          {isCreate ? 'Reset' : 'Cancel'}
+        </Button>
+        <Button
+          classes={!isValid ? { root: 'Mui-disabled' } : {}}
+          variant="contained"
+          endIcon={isCreate ? <AddIcon /> : <SaveIcon />}
+          onClick={onConfirm}
+          sx={
+            !isValid
+              ? {
+                  pointerEvents: 'auto !important',
+                  cursor: 'not-allowed !important',
+                }
+              : {}
+          }
+        >
+          {isCreate ? 'Add' : 'Save'}
+        </Button>
       </Stack>
-    </LocalizationProvider>
+    </Stack>
   );
 };
 
+ItemCreator.defaultProps = {
+  data: {
+    id: '',
+    content: '',
+    level: 'normal',
+    startTime: Date.now(),
+    endTime: Date.now() + DEFAULT_DURATION,
+    finishTime: null,
+    isDone: false,
+  },
+  isCreate: true,
+  onCancel: () => {},
+};
 export default ItemCreator;

@@ -1,54 +1,51 @@
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
-import {
-  Box,
-  Stack,
-  Container,
-  Typography,
-  IconButton,
-  ListItem,
-} from '@mui/material';
-import CircularProgress, {
-  circularProgressClasses,
-  CircularProgressProps,
-} from '@mui/material/CircularProgress';
+import { Box, Stack, Typography, IconButton, Tooltip } from '@mui/material';
 import LinearProgress, {
   linearProgressClasses,
+  LinearProgressProps,
 } from '@mui/material/LinearProgress';
 import Checkbox from '@mui/material/Checkbox';
-import * as colors from '@mui/material/colors';
 import CloseIcon from '@mui/icons-material/Close';
-import { ITEM_LEVELS } from '@/utils/constants';
-import { Context } from '@/pages/IndexPage';
+import { ITEM_LEVELS, ItemType } from '@/utils/constants';
+import { Context } from '@/context/index';
 import { durationParser } from '@/utils/public';
+import EditIcon from '@mui/icons-material/Edit';
+import Modal from '@/layouts/Modal';
+import ItemCreator from '@/components/ItemCreator';
 
 //
-const ProgressBackground = styled(LinearProgress)(
-  ({ theme, bgcolor, isdim }) => ({
-    position: 'absolute',
-    height: 'auto',
-    inset: '0 0 0 0',
-    borderRadius: '4px',
-    [`&.${linearProgressClasses.colorPrimary}`]: {
-      // backgroundColor:
-      //   theme.palette.grey[theme.palette.mode === 'light' ? 200 : 800],
-      backgroundColor: bgcolor[isdim ? 100 : 200],
-      transition: 'all ease .2s',
-    },
-    [`& .${linearProgressClasses.bar}`]: {
-      // borderRadius: 5,
-      backgroundImage:
-        'linear-gradient(45deg,hsla(0,0%,100%,.15) 25%,transparent 0,transparent 50%,hsla(0,0%,100%,.15) 0,hsla(0,0%,100%,.15) 75%,transparent 0,transparent)',
-      backgroundSize: '32px 32px',
-      // backgroundColor: theme.palette.mode === 'light' ? '#1a90ff' : '#308fe8',
-      backgroundColor: bgcolor[isdim ? 300 : 500],
-      transition: 'all ease .2s',
-    },
-  })
+const ProgressBackground = ({
+  colorSet,
+  isDim,
+  ...rest
+}: {
+  colorSet: { [key: string]: string };
+  isDim: boolean;
+} & LinearProgressProps) => (
+  <LinearProgress
+    sx={{
+      position: 'absolute',
+      height: 'auto',
+      inset: '0 0 0 0',
+      [`&.${linearProgressClasses.colorPrimary}`]: {
+        backgroundColor: colorSet[isDim ? 100 : 200],
+        transition: 'all ease .2s',
+      },
+      [`& .${linearProgressClasses.bar}`]: {
+        backgroundImage:
+          'linear-gradient(45deg,hsla(0,0%,100%,.15) 25%,transparent 0,transparent 50%,hsla(0,0%,100%,.15) 0,hsla(0,0%,100%,.15) 75%,transparent 0,transparent)',
+        backgroundSize: '32px 32px',
+        backgroundColor: colorSet[isDim ? 300 : 500],
+        transition: 'all ease .2s',
+      },
+    }}
+    {...rest}
+  />
 );
 
 //
-const StyledCheckbox = styled(Checkbox)(({ theme }) => ({
+const StyledCheckbox = styled(Checkbox)(() => ({
   ':before': {
     content: "''",
     background: 'white',
@@ -61,152 +58,189 @@ const StyledCheckbox = styled(Checkbox)(({ theme }) => ({
   },
   '& .MuiSvgIcon-root': {
     zIndex: 1,
-    // fontSize: '28px',
   },
 }));
 
-export interface ProgressItemProps {
-  id: string;
-  content: string;
-  type: string;
-  startTime: number;
-  finishTime: number | null;
-  planDuration: number;
-  isDone: boolean;
-}
 //
-const ProgressItem = ({
-  id,
-  content,
-  type,
-  startTime,
-  finishTime,
-  planDuration,
-  isDone,
-}: ProgressItemProps) => {
-  const { data, dispatch } = React.useContext(Context);
+const ProgressItem = ({ data }: { data: ItemType }) => {
+  const { dispatch } = React.useContext(Context);
   const [leftTime, setLeftTime] = React.useState(0);
   const [percent, setPercent] = React.useState(0);
-  const onCheckChange = ({ target }) => {
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const timer = React.useRef<number>();
+  //
+  const onCheckChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch({
       type: 'update',
       payload: {
-        id,
-        isDone: target.checked,
-        finishTime: target.checked ? Date.now() : null,
+        ...data,
+        isDone: e.currentTarget.checked,
+        finishTime: e.currentTarget.checked ? Date.now() : null,
       },
     });
   };
-
+  //
   const onDelete = () => {
-    dispatch({ type: 'delete', payload: { id } });
+    dispatch({ type: 'delete', payload: data });
   };
-
-  const calcDuration = () => {
-    const diffTime = (finishTime ?? Date.now()) - startTime;
-    setLeftTime(planDuration - diffTime);
-    setPercent(Math.min((diffTime / planDuration) * 100, 100));
-  };
+  //
+  const calcDuration = React.useCallback(() => {
+    const diffTime = (data.finishTime ?? Date.now()) - data.startTime;
+    setLeftTime(data.endTime - data.startTime - diffTime);
+    setPercent(
+      Math.min((diffTime / (data.endTime - data.startTime)) * 100, 100)
+    );
+  }, [data]);
 
   React.useEffect(() => {
-    let timer;
     calcDuration();
-    if (!isDone && !timer) {
-      timer = setInterval(calcDuration, 1000);
+    if (!data.isDone && !timer.current) {
+      timer.current = window.setInterval(calcDuration, 1000);
     }
     return () => {
-      clearInterval(timer);
+      clearInterval(timer.current);
     };
-  }, [isDone]);
+  }, [data.isDone, calcDuration]);
 
   return (
-    <Box
-      id={id}
-      sx={{
-        position: 'relative',
-        height: '48px',
-        width: '100%',
-        overflow: 'hidden',
-        margin: '4px 0',
-      }}
-    >
-      <ProgressBackground
-        variant="determinate"
-        value={percent}
-        bgcolor={ITEM_LEVELS[type].color}
-        isdim={isDone}
-      />
-      <Stack direction="row" alignItems="center" height="100%">
-        <StyledCheckbox
-          inputProps={{ 'aria-label': 'Checkbox demo' }}
-          sx={{ color: `${ITEM_LEVELS[type].color[500]} !important` }}
-          checked={isDone}
-          onChange={onCheckChange}
+    <>
+      <Box
+        id={data.id}
+        sx={{
+          position: 'relative',
+          height: '48px',
+          width: '100%',
+          overflow: 'hidden',
+          margin: '4px 0',
+          borderRadius: '4px',
+        }}
+      >
+        <ProgressBackground
+          variant="determinate"
+          value={percent}
+          colorSet={ITEM_LEVELS[data.level].color}
+          isDim={data.isDone}
         />
-        <Typography
-          variant="body1"
-          noWrap
-          component="div"
-          title={content}
-          sx={{
-            flexGrow: 1,
-            zIndex: 1,
-            color: 'white',
-            textDecoration: isDone ? 'line-through' : 'none',
-            textShadow: '1px 1px 1px rgba(0, 0, 0, 30%)',
-          }}
-        >
-          {content}
-        </Typography>
-        <Stack
-          direction="column"
-          alignItems="end"
-          alignSelf="start"
-          height="200%"
-          sx={{
-            mr: 2,
-            transition: 'all ease .2s',
-            '&:hover': {
-              transform: 'translateY(-50%)',
-            },
-          }}
-        >
-          <Stack height="50%" justifyContent="center" alignItems="center">
-            <Typography
-              variant="body1"
-              noWrap
-              component="div"
+        <Stack direction="row" alignItems="center" height="100%">
+          <StyledCheckbox
+            inputProps={{ 'aria-label': 'Checkbox demo' }}
+            sx={{ color: `${ITEM_LEVELS[data.level].color[500]} !important` }}
+            checked={data.isDone}
+            onChange={onCheckChange}
+          />
+          <Typography
+            variant="body1"
+            noWrap
+            component="div"
+            title={data.content}
+            sx={{
+              flex: 1,
+              zIndex: 1,
+              mr: 2,
+              color: 'white',
+              textDecoration: data.isDone ? 'line-through' : 'none',
+              textShadow: '1px 1px 1px rgba(0, 0, 0, 30%)',
+            }}
+          >
+            {data.content}
+          </Typography>
+          <Box height="100%" overflow="hidden" ref={containerRef}>
+            <Stack
+              direction="column"
+              alignItems="end"
+              alignSelf="start"
+              height="200%"
               sx={{
-                zIndex: 1,
-                color: 'white',
-                textShadow: '1px 1px 1px rgba(0, 0, 0, 30%)',
+                mr: 2,
+                transition: 'all ease .2s',
+                '&:hover': {
+                  transform: 'translateY(-50%)',
+                },
               }}
             >
-              {`${durationParser(Math.abs(leftTime))} ${
-                leftTime > 0 ? 'left' : 'late'
-              }`}
-            </Typography>
-          </Stack>
-          <Stack height="50%" justifyContent="center" alignItems="center">
-            <IconButton
-              size="small"
-              edge="start"
-              color="inherit"
-              aria-label="open drawer"
-              sx={{ color: 'white' }}
-              onClick={onDelete}
-            >
-              <CloseIcon
-                fontSize="inherit"
-                sx={{
-                  filter: 'drop-shadow(1px 1px 1px rgba(0, 0, 0, 30%))',
-                }}
-              />
-            </IconButton>
-          </Stack>
+              <Stack height="50%" justifyContent="center" alignItems="center">
+                <Typography
+                  variant="body1"
+                  noWrap
+                  component="div"
+                  sx={{
+                    zIndex: 1,
+                    color: 'white',
+                    textShadow: '1px 1px 1px rgba(0, 0, 0, 30%)',
+                  }}
+                >
+                  {leftTime > data.endTime - data.startTime
+                    ? `${durationParser(
+                        Math.abs(leftTime - (data.endTime - data.startTime))
+                      )} away`
+                    : `${durationParser(Math.abs(leftTime))} ${
+                        leftTime > 0 ? 'left' : 'late'
+                      }`}
+                </Typography>
+              </Stack>
+              <Stack
+                direction="row"
+                justifyContent="center"
+                alignItems="center"
+                spacing={1}
+                height="50%"
+              >
+                <Tooltip title="edit">
+                  <IconButton
+                    size="small"
+                    edge="start"
+                    color="inherit"
+                    aria-label="open drawer"
+                    tabIndex={-1}
+                    onFocus={() => containerRef.current?.scroll(0, 0)}
+                    sx={{ color: 'white' }}
+                    onClick={() => setShowEditModal(true)}
+                  >
+                    <EditIcon
+                      fontSize="inherit"
+                      sx={{
+                        filter: 'drop-shadow(1px 1px 1px rgba(0, 0, 0, 30%))',
+                      }}
+                    />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="delete">
+                  <IconButton
+                    size="small"
+                    edge="start"
+                    color="inherit"
+                    aria-label="open drawer"
+                    tabIndex={-1}
+                    sx={{ color: 'white' }}
+                    onClick={onDelete}
+                  >
+                    <CloseIcon
+                      fontSize="inherit"
+                      sx={{
+                        filter: 'drop-shadow(1px 1px 1px rgba(0, 0, 0, 30%))',
+                      }}
+                    />
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+            </Stack>
+          </Box>
         </Stack>
-      </Stack>
-    </Box>
+      </Box>
+      <Modal
+        open={showEditModal}
+        handleClose={() => setShowEditModal(false)}
+        title="Edit Todo"
+        content={
+          <ItemCreator
+            data={data}
+            isCreate={false}
+            onCancel={() => setShowEditModal(false)}
+          />
+        }
+      />
+    </>
   );
 };
 
