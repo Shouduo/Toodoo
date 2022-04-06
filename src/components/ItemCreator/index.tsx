@@ -78,7 +78,7 @@ const ItemCreator = ({ data, isCreate, onCancel }: Props) => {
       isCreate ? setContent('') : onCancel?.();
     } else {
       !showErrorMsg && setShowErrorMsg(true);
-      clearTimeout(timer.current);
+      window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => {
         setShowErrorMsg(false);
       }, 2000);

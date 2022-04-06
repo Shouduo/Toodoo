@@ -5,6 +5,7 @@ import { IconButton, PaletteMode, ThemeOptions } from '@mui/material';
 import { useTheme, ThemeProvider, createTheme } from '@mui/material/styles';
 import { getDesignTokens } from '@/theme';
 import * as colors from '@mui/material/colors';
+import { now } from 'lodash';
 //
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {},
@@ -12,6 +13,8 @@ export const ColorModeContext = React.createContext({
 //
 const App = () => {
   const [mode, setMode] = React.useState<PaletteMode>('light');
+  const timer = React.useRef<number>();
+
   const colorMode = React.useMemo(
     () => ({
       toggleColorMode: () => {
@@ -20,7 +23,31 @@ const App = () => {
     }),
     []
   );
+
   const theme = React.useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
+
+  const UpdateTheme = () => {
+    const nowDate = new Date();
+    if (nowDate.getMinutes() === 0) {
+      if (nowDate.getHours() === 18) {
+        setMode('dark');
+      } else if (nowDate.getHours() === 6) {
+        setMode('light');
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    if (new Date().getHours() >= 18 || new Date().getHours() >= 6) {
+      setMode('dark');
+    } else {
+      setMode('light');
+    }
+    timer.current = window.setInterval(UpdateTheme, 60 * 1000);
+    return () => {
+      window.clearInterval(timer.current);
+    };
+  }, []);
 
   return (
     <ColorModeContext.Provider value={colorMode}>

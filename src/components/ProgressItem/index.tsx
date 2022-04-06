@@ -113,7 +113,7 @@ const ProgressItem = ({ data }: { data: ItemType }) => {
       timer.current = window.setInterval(calcDuration, 1000);
     }
     return () => {
-      clearInterval(timer.current);
+      window.clearInterval(timer.current);
     };
   }, [data.isDone, calcDuration]);
 
