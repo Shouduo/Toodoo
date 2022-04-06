@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { Stack, Typography, Chip, ListItem } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import FlipMove from 'react-flip-move';
 import ProgressItem from '@/components/ProgressItem';
 import { Context } from '@/context/index';
-import { orderBy, filter } from 'lodash';
+import { orderBy, filter, invert } from 'lodash';
 import { ItemType, ITEM_LEVELS, ITEM_TEMPLATE } from '@/utils/constants';
 
 //
@@ -16,6 +17,7 @@ const ItemGroup = ({
   content: string;
   onClick: () => void;
 }) => {
+  const theme = useTheme();
   return (
     <Stack
       direction="row"
@@ -25,15 +27,20 @@ const ItemGroup = ({
         height: '48px',
         width: '100%',
         margin: '4px 0',
-        background: 'white',
+        bgcolor: 'background.default',
         borderRadius: '4px',
         cursor: 'pointer',
-        transition: 'all ease .2s',
-        '&:hover': { background: 'rgba(0,0,0,0.05)' },
+        transition: 'filter ease .2s',
+        '&:hover': { filter: 'invert(0.1)' },
       }}
       onClick={onClick}
     >
-      <Typography variant="h6" noWrap component="div">
+      <Typography
+        variant="h6"
+        noWrap
+        component="div"
+        color={theme.palette.text.primary}
+      >
         {id}
       </Typography>
       <Chip label={content} />
@@ -83,32 +90,30 @@ const ItemList = () => {
   }, [data, expandGroup, order, keyword]);
 
   return (
-    <>
-      <FlipMove
-        typeName="ul"
-        duration={200}
-        // staggerDurationBy={50}
-        // staggerDelayBy={10}
-        enterAnimation="fade"
-        leaveAnimation="fade"
-      >
-        {sortedData.map((item) =>
-          ['Ongoing', 'Done'].includes(item.id) ? (
-            <ListItem key={item.id} sx={{ padding: '0' }}>
-              <ItemGroup
-                id={item.id}
-                content={item.content}
-                onClick={onExpandToggle(item.id)}
-              />
-            </ListItem>
-          ) : (
-            <ListItem key={item.id} sx={{ padding: '0' }}>
-              <ProgressItem data={item} />
-            </ListItem>
-          )
-        )}
-      </FlipMove>
-    </>
+    <FlipMove
+      typeName="ul"
+      duration={200}
+      // staggerDurationBy={50}
+      // staggerDelayBy={10}
+      enterAnimation="fade"
+      leaveAnimation="fade"
+    >
+      {sortedData.map((item) =>
+        ['Ongoing', 'Done'].includes(item.id) ? (
+          <ListItem key={item.id} sx={{ padding: '0' }}>
+            <ItemGroup
+              id={item.id}
+              content={item.content}
+              onClick={onExpandToggle(item.id)}
+            />
+          </ListItem>
+        ) : (
+          <ListItem key={item.id} sx={{ padding: '0' }}>
+            <ProgressItem data={item} />
+          </ListItem>
+        )
+      )}
+    </FlipMove>
   );
 };
 

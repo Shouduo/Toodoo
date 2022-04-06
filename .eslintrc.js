@@ -9,6 +9,7 @@ module.exports = {
     'react/jsx-props-no-spreading': 'off',
     '@typescript-eslint/no-unused-expressions': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/dot-notation': 'off',
     'import/prefer-default-export': 'off',
     'import/no-cycle': 'off',
   },

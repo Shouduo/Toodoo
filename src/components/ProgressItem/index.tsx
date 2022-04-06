@@ -1,6 +1,14 @@
 import * as React from 'react';
-import { styled } from '@mui/material/styles';
-import { Box, Stack, Typography, IconButton, Tooltip } from '@mui/material';
+import { useTheme, styled } from '@mui/material/styles';
+import {
+  Box,
+  Stack,
+  Typography,
+  IconButton,
+  Tooltip,
+  PaletteColor,
+  Palette,
+} from '@mui/material';
 import LinearProgress, {
   linearProgressClasses,
   LinearProgressProps,
@@ -20,7 +28,7 @@ const ProgressBackground = ({
   isDim,
   ...rest
 }: {
-  colorSet: { [key: string]: string };
+  colorSet: PaletteColor;
   isDim: boolean;
 } & LinearProgressProps) => (
   <LinearProgress
@@ -28,15 +36,18 @@ const ProgressBackground = ({
       position: 'absolute',
       height: 'auto',
       inset: '0 0 0 0',
+      opacity: isDim ? '0.5' : '1',
       [`&.${linearProgressClasses.colorPrimary}`]: {
-        backgroundColor: colorSet[isDim ? 100 : 200],
+        // backgroundColor: colorSet[isDim ? 100 : 200],
+        backgroundColor: colorSet.light,
         transition: 'all ease .2s',
       },
       [`& .${linearProgressClasses.bar}`]: {
         backgroundImage:
           'linear-gradient(45deg,hsla(0,0%,100%,.15) 25%,transparent 0,transparent 50%,hsla(0,0%,100%,.15) 0,hsla(0,0%,100%,.15) 75%,transparent 0,transparent)',
         backgroundSize: '32px 32px',
-        backgroundColor: colorSet[isDim ? 300 : 500],
+        // backgroundColor: colorSet[isDim ? 300 : 500],
+        backgroundColor: colorSet.main,
         transition: 'all ease .2s',
       },
     }}
@@ -45,10 +56,10 @@ const ProgressBackground = ({
 );
 
 //
-const StyledCheckbox = styled(Checkbox)(() => ({
+const StyledCheckbox = styled(Checkbox)(({ theme }) => ({
   ':before': {
     content: "''",
-    background: 'white',
+    backgroundColor: theme.palette.background.paper,
     position: 'absolute',
     height: '16px',
     width: '16px',
@@ -64,9 +75,12 @@ const StyledCheckbox = styled(Checkbox)(() => ({
 //
 const ProgressItem = ({ data }: { data: ItemType }) => {
   const { dispatch } = React.useContext(Context);
+  const theme = useTheme();
+
   const [leftTime, setLeftTime] = React.useState(0);
   const [percent, setPercent] = React.useState(0);
   const [showEditModal, setShowEditModal] = React.useState(false);
+
   const containerRef = React.useRef<HTMLDivElement>(null);
   const timer = React.useRef<number>();
   //
@@ -119,13 +133,26 @@ const ProgressItem = ({ data }: { data: ItemType }) => {
         <ProgressBackground
           variant="determinate"
           value={percent}
-          colorSet={ITEM_LEVELS[data.level].color}
+          colorSet={
+            theme.palette[
+              ITEM_LEVELS[data.level].color as keyof Palette
+            ] as PaletteColor
+          }
           isDim={data.isDone}
         />
         <Stack direction="row" alignItems="center" height="100%">
           <StyledCheckbox
             inputProps={{ 'aria-label': 'Checkbox demo' }}
-            sx={{ color: `${ITEM_LEVELS[data.level].color[500]} !important` }}
+            // sx={{ color: `${ITEM_LEVELS[data.level].color[500]} !important` }}
+            sx={{
+              color: `${
+                (
+                  theme.palette[
+                    ITEM_LEVELS[data.level].color as keyof Palette
+                  ] as PaletteColor
+                ).dark
+              } !important`,
+            }}
             checked={data.isDone}
             onChange={onCheckChange}
           />
@@ -186,7 +213,7 @@ const ProgressItem = ({ data }: { data: ItemType }) => {
                 spacing={1}
                 height="50%"
               >
-                <Tooltip title="edit">
+                <Tooltip title="edit" arrow>
                   <IconButton
                     size="small"
                     edge="start"
@@ -205,7 +232,7 @@ const ProgressItem = ({ data }: { data: ItemType }) => {
                     />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title="delete">
+                <Tooltip title="delete" arrow>
                   <IconButton
                     size="small"
                     edge="start"

@@ -3,15 +3,18 @@ import { nanoid } from 'nanoid';
 
 type ItemLevelType = {
   label: string;
-  color: { [key: string]: string };
+  color: string;
   key: string;
   level: number;
 };
 
 export const ITEM_LEVELS: { [key: string]: ItemLevelType } = {
-  normal: { label: 'Normal', color: colors.green, key: 'normal', level: 0 },
-  major: { label: 'Major', color: colors.orange, key: 'major', level: 1 },
-  deadly: { label: 'Deadly', color: colors.red, key: 'deadly', level: 2 },
+  // normal: { label: 'Normal', color: colors.green, key: 'normal', level: 0 },
+  // major: { label: 'Major', color: colors.orange, key: 'major', level: 1 },
+  // deadly: { label: 'Deadly', color: colors.red, key: 'deadly', level: 2 },
+  normal: { label: 'Normal', color: 'success', key: 'normal', level: 0 },
+  major: { label: 'Major', color: 'warning', key: 'major', level: 1 },
+  deadly: { label: 'Deadly', color: 'error', key: 'deadly', level: 2 },
 };
 
 export type ItemType = {

@@ -1,10 +1,17 @@
 import * as React from 'react';
-import { styled, alpha, useTheme } from '@mui/material/styles';
+import {
+  styled,
+  alpha,
+  useTheme,
+  ThemeProvider,
+  createTheme,
+} from '@mui/material/styles';
 import {
   Box,
   Stack,
   AppBar,
   Toolbar,
+  Tooltip,
   IconButton,
   Typography,
   InputBase,
@@ -13,7 +20,10 @@ import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 import { Context } from '@/context/index';
+import { ColorModeContext } from '@/renderer/App';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -65,9 +75,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     transition: theme.transitions.create('width'),
     width: '100%',
     [theme.breakpoints.up('sm')]: {
-      width: '12ch',
+      width: '6ch',
       '&:focus': {
-        width: '20ch',
+        width: '12ch',
       },
     },
   },
@@ -108,6 +118,22 @@ OrderSwitcher.defaultProps = {
 };
 
 //
+const ThemeSwitch = () => {
+  const theme = useTheme();
+  const colorMode = React.useContext(ColorModeContext);
+  return (
+    <Tooltip title={`${theme.palette.mode} mode`} arrow>
+      <IconButton
+        size="small"
+        onClick={colorMode.toggleColorMode}
+        color="inherit"
+      >
+        {theme.palette.mode === 'dark' ? <DarkModeIcon /> : <LightModeIcon />}
+      </IconButton>
+    </Tooltip>
+  );
+};
+//
 const NavBar = () => {
   const theme = useTheme();
   const isLargeView = useMediaQuery(theme.breakpoints.up('sm'));
@@ -136,33 +162,43 @@ const NavBar = () => {
             <MenuIcon />
           </IconButton>
         )}
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
-          >
-            Toodoo
-          </Typography>
-          {isLargeView && <OrderSwitcher />}
+        {isLargeView && (
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              sx={{ flexGrow: 1 }}
+            >
+              Toodoo
+            </Typography>
+            <OrderSwitcher />
+          </Stack>
+        )}
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={2}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
+        >
+          <Search>
+            <SearchIconWrapper>
+              <SearchIcon />
+            </SearchIconWrapper>
+            <StyledInputBase
+              placeholder="Search…"
+              inputProps={{ 'aria-label': 'search' }}
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+            />
+            {keyword.trim() !== '' && (
+              <CloseIconWrapper onClick={() => setKeyword('')}>
+                <CloseIcon />
+              </CloseIconWrapper>
+            )}
+          </Search>
+          <ThemeSwitch />
         </Stack>
-        <Search>
-          <SearchIconWrapper>
-            <SearchIcon />
-          </SearchIconWrapper>
-          <StyledInputBase
-            placeholder="Search…"
-            inputProps={{ 'aria-label': 'search' }}
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-          />
-          {keyword.trim() !== '' && (
-            <CloseIconWrapper onClick={() => setKeyword('')}>
-              <CloseIcon />
-            </CloseIconWrapper>
-          )}
-        </Search>
       </Toolbar>
       <Box
         overflow="hidden"

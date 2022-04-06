@@ -5,11 +5,13 @@ import '@/renderer/App.css';
 
 //
 const MainBox = styled(Box)(({ theme }) => ({
-  margin: '24px 16px 0',
+  padding: '24px 16px 0',
   height: 'auto',
   overflow: 'hidden',
+  minHeight: 'calc(100vh - 64px - 24px)',
+  backgroundColor: theme.palette.background.paper,
   [theme.breakpoints.up('sm')]: {
-    margin: '24px 24px 0',
+    padding: '24px 24px 0',
     height: 'calc(100vh - 64px - 24px)',
   },
 }));

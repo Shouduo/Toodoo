@@ -6,7 +6,10 @@ import {
   InputAdornment,
   IconButton,
   Tooltip,
+  Palette,
+  PaletteColor,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { Context } from '@/context/index';
 import {
   ITEM_TEMPLATE,
@@ -29,6 +32,7 @@ interface Props {
 
 const ItemCreator = ({ data, isCreate, onCancel }: Props) => {
   const { dispatch } = React.useContext(Context);
+  const theme = useTheme();
 
   const [content, setContent] = React.useState<string>(data?.content ?? '');
   const [level, setLevel] = React.useState<string>(
@@ -86,7 +90,7 @@ const ItemCreator = ({ data, isCreate, onCancel }: Props) => {
   }, [content, startTime, endTime]);
 
   return (
-    <Stack spacing={3} sx={{ paddingTop: '8px' }}>
+    <Stack spacing={3} sx={{ padding: '16px 0' }}>
       <TextField
         id="outlined-multiline-flexible"
         size="small"
@@ -123,7 +127,13 @@ const ItemCreator = ({ data, isCreate, onCancel }: Props) => {
                 <IconButton size="small" onClick={onLevelIconClick}>
                   <CircleIcon
                     fontSize="small"
-                    sx={{ color: ITEM_LEVELS[level].color[500] }}
+                    sx={{
+                      color: (
+                        theme.palette[
+                          ITEM_LEVELS[level].color as keyof Palette
+                        ] as PaletteColor
+                      ).main,
+                    }}
                   />
                 </IconButton>
               </Tooltip>
