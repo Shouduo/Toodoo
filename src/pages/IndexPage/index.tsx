@@ -1,6 +1,5 @@
 import * as React from 'react';
 import NavBar from '@/components/NavBar';
-// import icon from '@/../assets/icon.svg';
 import '@/renderer/App.css';
 import SidePart from '@/layouts/SidePart';
 import ItemCreator from '@/components/ItemCreator';

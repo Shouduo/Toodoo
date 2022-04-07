@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import IndexPage from '@/pages/IndexPage';
-import { IconButton, PaletteMode, ThemeOptions } from '@mui/material';
-import { useTheme, ThemeProvider, createTheme } from '@mui/material/styles';
+import { PaletteMode } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { getDesignTokens } from '@/theme';
-import * as colors from '@mui/material/colors';
-import { now } from 'lodash';
 //
 export const ColorModeContext = React.createContext({
   toggleColorMode: () => {},

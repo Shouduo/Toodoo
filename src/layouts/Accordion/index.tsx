@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { isString } from 'lodash';
-import { useTheme } from '@mui/material/styles';
 
 export interface AccordionProps {
   summary: string | React.ReactElement;
@@ -19,7 +18,6 @@ const Accordion = ({
   showArrow,
   disabled,
 }: AccordionProps) => {
-  const theme = useTheme();
   const [isExpand, setIsExpand] = React.useState(defaultOpen);
   const [detailHeight, setDetailHeight] = React.useState(0);
   const detailRef = React.useRef<HTMLDivElement>(null);

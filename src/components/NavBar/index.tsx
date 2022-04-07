@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-  styled,
-  alpha,
-  useTheme,
-  ThemeProvider,
-  createTheme,
-} from '@mui/material/styles';
+import { styled, alpha, useTheme } from '@mui/material/styles';
 import {
   Box,
   Stack,

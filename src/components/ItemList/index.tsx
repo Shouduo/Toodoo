@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import FlipMove from 'react-flip-move';
 import ProgressItem from '@/components/ProgressItem';
 import { Context } from '@/context/index';
-import { orderBy, filter, invert } from 'lodash';
+import { orderBy, filter } from 'lodash';
 import { ItemType, ITEM_LEVELS, ITEM_TEMPLATE } from '@/utils/constants';
 
 //
