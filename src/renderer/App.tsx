@@ -38,7 +38,7 @@ const App = () => {
   };
 
   React.useEffect(() => {
-    if (new Date().getHours() >= 18 || new Date().getHours() >= 6) {
+    if (new Date().getHours() >= 18 || new Date().getHours() <= 6) {
       setMode('dark');
     } else {
       setMode('light');

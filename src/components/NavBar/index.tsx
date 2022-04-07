@@ -149,7 +149,13 @@ const NavBar = () => {
 
   return (
     <AppBar position="sticky">
-      <Toolbar sx={{ height: '64px', justifyContent: 'space-between' }}>
+      <Toolbar
+        sx={{
+          height: '64px',
+          justifyContent: 'space-between',
+          paddingX: { xs: '16px', sm: '24px', md: '64px', lg: '128px' },
+        }}
+      >
         {!isLargeView && (
           <IconButton
             size="large"
