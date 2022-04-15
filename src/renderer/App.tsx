@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import IndexPage from '@/pages/IndexPage';
 import { PaletteMode } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import IndexPage from '@/pages/IndexPage';
 import { getDesignTokens } from '@/theme';
 //
 export const ColorModeContext = React.createContext({
@@ -33,6 +33,7 @@ const App = () => {
         setMode('light');
       }
     }
+    console.log('update theme');
   };
 
   React.useEffect(() => {
