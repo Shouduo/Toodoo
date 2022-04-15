@@ -2,8 +2,8 @@
 'Toodoo' is a simple, stylish to-do list app which based on [electron-react-boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate).  
 Your would and should set the deadline for each todo, so that the running progress bar could chase your task and push you to get the job done in time.  
 Totally 3 types of todo, 'normal', 'major', 'deadly', which colored in traffic lights logic. Data are save in local-storage, be careful when wipe it.  
-Download app for MacOS or Windows from [Release Page](https://shouduo.github.io/Toodoo/releases).
-Or just check up [online page](https://shouduo.github.io/Toodoo) for temporary use.
+Download app for MacOS or Windows from [Release Page](https://github.com/Shouduo/Toodoo/releases).
+Or just check up [online page](https://shouduo.github.io/Toodoo/) for temporary use.
 ## Project setup
 ```
 git clone https://github.com/Shouduo/Toodoo.git
