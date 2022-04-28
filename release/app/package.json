@@ -1,6 +1,6 @@
 {
   "name": "toodoo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A pushing todo list",
   "main": "./dist/main/main.js",
   "author": {
