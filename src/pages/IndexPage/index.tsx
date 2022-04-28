@@ -1,15 +1,15 @@
 import * as React from 'react';
-import NavBar from '@/components/NavBar';
 import '@/renderer/App.css';
-import SidePart from '@/layouts/SidePart';
-import ItemCreator from '@/components/ItemCreator';
-import { INITIAL_DATA } from '@/utils/constants';
-import ItemList from '@/components/ItemList';
-import * as ls from 'local-storage';
-import Accordion from '@/layouts/Accordion';
-import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
+import * as ls from 'local-storage';
+import { INITIAL_DATA } from '@/utils/constants';
+import Accordion from '@/layouts/Accordion';
 import { Context, reducers } from '@/context/index';
+import ItemList from '@/components/ItemList';
+import ItemCreator from '@/components/ItemCreator';
+import NavBar from '@/components/NavBar';
+import SidePart from '@/layouts/SidePart';
 
 //
 const IndexPage = () => {
